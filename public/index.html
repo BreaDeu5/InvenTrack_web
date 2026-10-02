@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo de Productos</title>
+  <style>
+    /* Estilos básicos sin librerías externas */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f1f5f9;
+      display: flex;
+      height: 100vh;
+    }
+
+    /* Panel izquierdo */
+    #panel-izquierdo {
+      width: 250px;
+      background-color: white;
+      padding: 20px;
+      box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    #panel-izquierdo h3 {
+      color: #1B3A6B;
+    }
+
+    .caja-input {
+      width: 90%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    /* Panel derecho (Productos) */
+    #panel-derecho {
+      flex: 1;
+      padding: 20px;
+      overflow-y: scroll;
+    }
+
+    /* Diseño de cada producto */
+    .tarjeta-producto {
+      background-color: white;
+      width: 220px;
+      padding: 15px;
+      margin: 10px;
+      border-radius: 8px;
+      display: inline-block;
+      text-align: center;
+      vertical-align: top;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- LADO IZQUIERDO: Buscador -->
+  <div id="panel-izquierdo">
+    <h3>Buscador</h3>
+
+    <label>Nombre del producto:</label>
+    <!-- Cuando el usuario suelta una tecla (onkeyup), llama a la función filtrar() -->
+    <input type="text" id="texto_busqueda" class="caja-input" placeholder="Ej: leche..." onkeyup="filtrarProductos()">
+
+    <label>Categoría:</label>
+    <!-- Cuando el usuario cambia la opción (onchange), llama a la función filtrar() -->
+    <select id="lista_categorias" class="caja-input" onchange="filtrarProductos()">
+      <option value="Todas">Todas</option>
+      <!-- Aquí se llenarán las categorías desde Python -->
+    </select>
+  </div>
+
+  <!-- LADO DERECHO: Catálogo -->
+  <div id="panel-derecho">
+    <h2 style="color: #1B3A6B; margin-left: 10px;">Nuestros Productos</h2>
+    <div id="contenedor_productos">
+      <p style="margin-left: 10px;">Cargando catálogo...</p>
+    </div>
+  </div>
+
+  
+<!-- Librerías de Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+  // 1. Configuración de tu proyecto Firebase
+  const firebaseConfig = {
+    projectId: "catalogoproyecto-69cc3"
+  };
+
+  // 2. Inicializar Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // 3. Variable global de productos
+  let listaGlobal = [];
+
+  // 4. Escuchar cambios en tiempo real en la colección 'productos'
+  db.collection("productos").onSnapshot(function(snapshot) {
+    listaGlobal = [];
+    
+    snapshot.forEach(function(doc) {
+      let datos = doc.data();
+      listaGlobal.push({
+        id: doc.id,
+        nombre: datos.nombre,
+        precio: datos.precio,
+        stock: datos.stock,
+        categoria: datos.categoria || "General"
+      });
+    });
+
+    // Actualizar la pantalla y el filtro
+    llenarComboboxCategorias(listaGlobal);
+    mostrarProductosEnPantalla(listaGlobal);
+  }, function(error) {
+    document.getElementById('contenedor_productos').innerHTML = 
+      "<p style='color:red; margin-left:10px;'>Error al cargar datos desde Firebase: " + error.message + "</p>";
+  });
+    // Función básica para dibujar las tarjetas en el HTML
+    function mostrarProductosEnPantalla(lista) {
+      let htmlFinal = "";
+
+      for (let i = 0; i < lista.length; i++) {
+        let prod = lista[i];
+
+        let textoStock = "";
+        if (prod.stock > 0) {
+          textoStock = "<p style='color: green; font-size: 13px; font-weight: bold;'>✔ Disponible</p>";
+        } else {
+          textoStock = "<p style='color: red; font-size: 13px; font-weight: bold;'>❌ Agotado</p>";
+        }
+
+        htmlFinal = htmlFinal + "<div class='tarjeta-producto'>";
+        htmlFinal = htmlFinal + "<p style='color: gray; font-size: 11px; margin-bottom: 0;'>" + prod.categoria + "</p>";
+        htmlFinal = htmlFinal + "<h3 style='color: #1B3A6B; margin-top: 5px;'>" + prod.nombre + "</h3>";
+        htmlFinal = htmlFinal + "<h2 style='color: #0D9488;'>$" + prod.precio + "</h2>";
+        htmlFinal = htmlFinal + textoStock;
+        htmlFinal = htmlFinal + "</div>";
+      }
+
+      document.getElementById('contenedor_productos').innerHTML = htmlFinal;
+    }
+
+    // Función básica para extraer categorías y ponerlas en el selector
+    function llenarComboboxCategorias(lista) {
+      let categoriasUnicas = [];
+
+      for (let i = 0; i < lista.length; i++) {
+        let cat = lista[i].categoria;
+        let existe = false;
+
+        for (let j = 0; j < categoriasUnicas.length; j++) {
+          if (categoriasUnicas[j] == cat) {
+            existe = true;
+          }
+        }
+
+        if (existe == false) {
+          categoriasUnicas.push(cat);
+        }
+      }
+
+      let selector = document.getElementById('lista_categorias');
+      for (let i = 0; i < categoriasUnicas.length; i++) {
+        let opcion = document.createElement("option");
+        opcion.value = categoriasUnicas[i];
+        opcion.text = categoriasUnicas[i];
+        selector.appendChild(opcion);
+      }
+    }
+
+    // Función básica que se activa al escribir o cambiar categoría
+    function filtrarProductos() {
+      let textoIngresado = document.getElementById('texto_busqueda').value.toLowerCase();
+      let categoriaSeleccionada = document.getElementById('lista_categorias').value;
+
+      let listaFiltrada = [];
+
+      for (let i = 0; i < listaGlobal.length; i++) {
+        let prod = listaGlobal[i];
+
+        let coincideNombre = false;
+        if (prod.nombre.toLowerCase().includes(textoIngresado)) {
+          coincideNombre = true;
+        }
+
+        let coincideCategoria = false;
+        if (categoriaSeleccionada == "Todas") {
+          coincideCategoria = true;
+        } else if (prod.categoria == categoriaSeleccionada) {
+          coincideCategoria = true;
+        }
+
+        if (coincideNombre == true && coincideCategoria == true) {
+          listaFiltrada.push(prod);
+        }
+      }
+
+      mostrarProductosEnPantalla(listaFiltrada);
+    }
+  </script>
+</body>
+
+</html>
