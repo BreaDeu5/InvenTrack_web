@@ -22,6 +22,7 @@
       background-color: white;
       padding: 20px;
       box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
     }
 
     #panel-izquierdo h3 {
@@ -56,6 +57,26 @@
       vertical-align: top;
       box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     }
+
+    /* --- NUEVO: REGLA PARA TELÉFONOS MÓVILES --- */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column; /* Pone el buscador arriba y productos abajo */
+        height: auto;
+      }
+      #panel-izquierdo {
+        width: 100%; /* Toma todo el ancho en celulares */
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      #panel-derecho {
+        overflow-y: visible;
+      }
+      .tarjeta-producto {
+        width: 85%; /* Se adapta al ancho del celular */
+        margin: 10px auto;
+        display: block; /* Centra las tarjetas una bajo otra */
+      }
+    }
   </style>
 </head>
 
@@ -66,14 +87,11 @@
     <h3>Buscador</h3>
 
     <label>Nombre del producto:</label>
-    <!-- Cuando el usuario suelta una tecla (onkeyup), llama a la función filtrar() -->
     <input type="text" id="texto_busqueda" class="caja-input" placeholder="Ej: leche..." onkeyup="filtrarProductos()">
 
     <label>Categoría:</label>
-    <!-- Cuando el usuario cambia la opción (onchange), llama a la función filtrar() -->
     <select id="lista_categorias" class="caja-input" onchange="filtrarProductos()">
       <option value="Todas">Todas</option>
-      <!-- Aquí se llenarán las categorías desde Python -->
     </select>
   </div>
 
@@ -85,46 +103,46 @@
     </div>
   </div>
 
-  
-<!-- Librerías de Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <!-- Librerías de Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-<script>
-  // 1. Configuración de tu proyecto Firebase
-  const firebaseConfig = {
-    projectId: "catalogoproyecto-69cc3"
-  };
+  <script>
+    // 1. Configuración de tu proyecto Firebase
+    const firebaseConfig = {
+      projectId: "catalogoproyecto-69cc3"
+    };
 
-  // 2. Inicializar Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+    // 2. Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  // 3. Variable global de productos
-  let listaGlobal = [];
+    // 3. Variable global de productos
+    let listaGlobal = [];
 
-  // 4. Escuchar cambios en tiempo real en la colección 'productos'
-  db.collection("productos").onSnapshot(function(snapshot) {
-    listaGlobal = [];
-    
-    snapshot.forEach(function(doc) {
-      let datos = doc.data();
-      listaGlobal.push({
-        id: doc.id,
-        nombre: datos.nombre,
-        precio: datos.precio,
-        stock: datos.stock,
-        categoria: datos.categoria || "General"
+    // 4. Escuchar cambios en tiempo real en la colección 'productos'
+    db.collection("productos").onSnapshot(function(snapshot) {
+      listaGlobal = [];
+      
+      snapshot.forEach(function(doc) {
+        let datos = doc.data();
+        listaGlobal.push({
+          id: doc.id,
+          nombre: datos.nombre,
+          precio: datos.precio,
+          stock: datos.stock,
+          categoria: datos.categoria || "General"
+        });
       });
+
+      // Actualizar la pantalla y el filtro
+      llenarComboboxCategorias(listaGlobal);
+      mostrarProductosEnPantalla(listaGlobal);
+    }, function(error) {
+      document.getElementById('contenedor_productos').innerHTML = 
+        "<p style='color:red; margin-left:10px;'>Error al cargar datos desde Firebase: " + error.message + "</p>";
     });
 
-    // Actualizar la pantalla y el filtro
-    llenarComboboxCategorias(listaGlobal);
-    mostrarProductosEnPantalla(listaGlobal);
-  }, function(error) {
-    document.getElementById('contenedor_productos').innerHTML = 
-      "<p style='color:red; margin-left:10px;'>Error al cargar datos desde Firebase: " + error.message + "</p>";
-  });
     // Función básica para dibujar las tarjetas en el HTML
     function mostrarProductosEnPantalla(lista) {
       let htmlFinal = "";
@@ -140,9 +158,13 @@
         }
 
         htmlFinal = htmlFinal + "<div class='tarjeta-producto'>";
-        htmlFinal = htmlFinal + "<p style='color: gray; font-size: 11px; margin-bottom: 0;'>" + prod.categoria + "</p>";
+        
+        // --- NUEVO: IMAGEN DEL PRODUCTO AUTOMÁTICA ---
+        htmlFinal = htmlFinal + "<img src='imagenes/" + prod.nombre + ".jpg' onerror=\"this.src='imagenes/default.png'\" style='width: 100%; height: 150px; object-fit: cover; border-radius: 5px;'>";
+
+        htmlFinal = htmlFinal + "<p style='color: gray; font-size: 11px; margin-bottom: 0; margin-top: 10px;'>" + prod.categoria + "</p>";
         htmlFinal = htmlFinal + "<h3 style='color: #1B3A6B; margin-top: 5px;'>" + prod.nombre + "</h3>";
-        htmlFinal = htmlFinal + "<h2 style='color: #0D9488;'>$" + prod.precio + "</h2>";
+        htmlFinal = htmlFinal + "<h2 style='color: #0D9488; margin-top: 0px;'>$" + prod.precio + "</h2>";
         htmlFinal = htmlFinal + textoStock;
         htmlFinal = htmlFinal + "</div>";
       }
@@ -169,7 +191,10 @@
         }
       }
 
+      // Reiniciamos el combobox asegurando que siempre exista "Todas"
       let selector = document.getElementById('lista_categorias');
+      selector.innerHTML = '<option value="Todas">Todas</option>'; 
+
       for (let i = 0; i < categoriasUnicas.length; i++) {
         let opcion = document.createElement("option");
         opcion.value = categoriasUnicas[i];
