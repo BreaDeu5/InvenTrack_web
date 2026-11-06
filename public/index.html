@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Catálogo de Productos</title>
   <style>
-    /* Estilos básicos sin librerías externas */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -16,7 +14,6 @@
       height: 100vh;
     }
 
-    /* Panel izquierdo */
     #panel-izquierdo {
       width: 250px;
       background-color: white;
@@ -38,14 +35,12 @@
       border-radius: 4px;
     }
 
-    /* Panel derecho (Productos) */
     #panel-derecho {
       flex: 1;
       padding: 20px;
       overflow-y: scroll;
     }
 
-    /* Diseño de cada producto */
     .tarjeta-producto {
       background-color: white;
       width: 220px;
@@ -58,31 +53,28 @@
       box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    /* --- NUEVO: REGLA PARA TELÉFONOS MÓVILES --- */
     @media (max-width: 768px) {
       body {
-        flex-direction: column; /* Pone el buscador arriba y productos abajo */
+        flex-direction: column; 
         height: auto;
       }
       #panel-izquierdo {
-        width: 100%; /* Toma todo el ancho en celulares */
+        width: 100%; 
         box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
       }
       #panel-derecho {
         overflow-y: visible;
       }
       .tarjeta-producto {
-        width: 85%; /* Se adapta al ancho del celular */
+        width: 85%; 
         margin: 10px auto;
-        display: block; /* Centra las tarjetas una bajo otra */
+        display: block; 
       }
     }
   </style>
 </head>
-
 <body>
 
-  <!-- LADO IZQUIERDO: Buscador -->
   <div id="panel-izquierdo">
     <h3>Buscador</h3>
 
@@ -95,7 +87,6 @@
     </select>
   </div>
 
-  <!-- LADO DERECHO: Catálogo -->
   <div id="panel-derecho">
     <h2 style="color: #1B3A6B; margin-left: 10px;">Nuestros Productos</h2>
     <div id="contenedor_productos">
@@ -103,24 +94,46 @@
     </div>
   </div>
 
-  <!-- Librerías de Firebase -->
+  <div id="accesoOculto" style="width: 50px; height: 50px; position: fixed; bottom: 0; right: 0; z-index: 9999; cursor: default;"></div>
+
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
   <script>
-    // 1. Configuración de tu proyecto Firebase
+    let esAdmin = false;
+
+    document.getElementById("accesoOculto").onclick = function() {
+      if (esAdmin == false) {
+        let usuario = prompt("Ingrese usuario:");
+        let clave = prompt("Ingrese contraseña:");
+
+        if (usuario == "dueno") {
+          if (clave == "admin123") {
+            esAdmin = true;
+            alert("Acceso concedido. Puede editar las imagenes.");
+            filtrarProductos();
+          }
+        }
+      } else {
+        if (esAdmin == true) {
+          let salir = confirm("¿Desea cerrar la sesion de administrador?");
+          if (salir == true) {
+            esAdmin = false;
+            filtrarProductos();
+          }
+        }
+      }
+    };
+
     const firebaseConfig = {
       projectId: "catalogoproyecto-69cc3"
     };
 
-    // 2. Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 3. Variable global de productos
     let listaGlobal = [];
 
-    // 4. Escuchar cambios en tiempo real en la colección 'productos'
     db.collection("productos").onSnapshot(function(snapshot) {
       listaGlobal = [];
       
@@ -131,108 +144,168 @@
           nombre: datos.nombre,
           precio: datos.precio,
           stock: datos.stock,
-          categoria: datos.categoria || "General"
+          categoria: datos.categoria,
+          imagen: datos.imagen
         });
       });
 
-      // Actualizar la pantalla y el filtro
       llenarComboboxCategorias(listaGlobal);
       mostrarProductosEnPantalla(listaGlobal);
     }, function(error) {
-      document.getElementById('contenedor_productos').innerHTML = 
-        "<p style='color:red; margin-left:10px;'>Error al cargar datos desde Firebase: " + error.message + "</p>";
+      document.getElementById("contenedor_productos").innerHTML = "<p style='color:red; margin-left:10px;'>Error al cargar datos</p>";
     });
 
-    // Función básica para dibujar las tarjetas en el HTML
     function mostrarProductosEnPantalla(lista) {
       let htmlFinal = "";
-
-      for (let i = 0; i < lista.length; i++) {
+      let i = 0;
+      
+      while (i < lista.length) {
         let prod = lista[i];
-
         let textoStock = "";
+        
         if (prod.stock > 0) {
           textoStock = "<p style='color: green; font-size: 13px; font-weight: bold;'>✔ Disponible</p>";
-        } else {
+        }
+        if (prod.stock <= 0) {
           textoStock = "<p style='color: red; font-size: 13px; font-weight: bold;'>❌ Agotado</p>";
         }
 
         htmlFinal = htmlFinal + "<div class='tarjeta-producto'>";
         
-        // --- NUEVO: IMAGEN DEL PRODUCTO AUTOMÁTICA ---
-        htmlFinal = htmlFinal + "<img src='imagenes/" + prod.nombre + ".jpg' onerror=\"this.src='imagenes/default.png'\" style='width: 100%; height: 150px; object-fit: cover; border-radius: 5px;'>";
+        let rutaImagen = "imagenes/default.png";
+        if (prod.imagen != undefined) {
+            if (prod.imagen != "") {
+                rutaImagen = prod.imagen;
+            }
+        }
 
-        htmlFinal = htmlFinal + "<p style='color: gray; font-size: 11px; margin-bottom: 0; margin-top: 10px;'>" + prod.categoria + "</p>";
+        let idDeLaImagen = "imagen_producto_" + i;
+        htmlFinal = htmlFinal + "<img id='" + idDeLaImagen + "' src='" + rutaImagen + "' onerror=\"this.src='imagenes/default.png'\" style='width: 100%; height: 150px; object-fit: cover; border-radius: 5px;'>";
+
+        if (esAdmin == true) {
+          htmlFinal = htmlFinal + "<div style='margin-top: 10px; padding: 5px; border: 1px dashed gray; text-align: left;'>";
+          htmlFinal = htmlFinal + "<label style='font-size: 11px; font-weight: bold;'>Cambiar Imagen:</label>";
+          htmlFinal = htmlFinal + "<input type='file' accept='image/*' onchange='mostrarNuevaImagen(this, \"" + idDeLaImagen + "\", \"" + prod.id + "\")' style='font-size: 10px; margin-top: 5px; margin-bottom: 5px; width: 100%;'>";
+          htmlFinal = htmlFinal + "<button onclick='borrarImagen(\"" + idDeLaImagen + "\", \"" + prod.id + "\")' style='width: 100%; background-color: red; color: white; border: none; padding: 5px; cursor: pointer; border-radius: 3px;'>Quitar Imagen</button>";
+          htmlFinal = htmlFinal + "</div>";
+        }
+
+        let nombreCategoria = "General";
+        if (prod.categoria != undefined) {
+            nombreCategoria = prod.categoria;
+        }
+
+        htmlFinal = htmlFinal + "<p style='color: gray; font-size: 11px; margin-bottom: 0; margin-top: 10px;'>" + nombreCategoria + "</p>";
         htmlFinal = htmlFinal + "<h3 style='color: #1B3A6B; margin-top: 5px;'>" + prod.nombre + "</h3>";
         htmlFinal = htmlFinal + "<h2 style='color: #0D9488; margin-top: 0px;'>$" + prod.precio + "</h2>";
         htmlFinal = htmlFinal + textoStock;
         htmlFinal = htmlFinal + "</div>";
+        
+        i = i + 1;
       }
 
-      document.getElementById('contenedor_productos').innerHTML = htmlFinal;
+      document.getElementById("contenedor_productos").innerHTML = htmlFinal;
     }
 
-    // Función básica para extraer categorías y ponerlas en el selector
     function llenarComboboxCategorias(lista) {
       let categoriasUnicas = [];
+      let i = 0;
 
-      for (let i = 0; i < lista.length; i++) {
+      while (i < lista.length) {
         let cat = lista[i].categoria;
         let existe = false;
+        let j = 0;
 
-        for (let j = 0; j < categoriasUnicas.length; j++) {
+        while (j < categoriasUnicas.length) {
           if (categoriasUnicas[j] == cat) {
             existe = true;
           }
+          j = j + 1;
         }
 
         if (existe == false) {
-          categoriasUnicas.push(cat);
+          if (cat != undefined) {
+             categoriasUnicas.push(cat);
+          }
         }
+        i = i + 1;
       }
 
-      // Reiniciamos el combobox asegurando que siempre exista "Todas"
-      let selector = document.getElementById('lista_categorias');
-      selector.innerHTML = '<option value="Todas">Todas</option>'; 
+      let selector = document.getElementById("lista_categorias");
+      selector.innerHTML = "<option value='Todas'>Todas</option>"; 
 
-      for (let i = 0; i < categoriasUnicas.length; i++) {
+      let k = 0;
+      while (k < categoriasUnicas.length) {
         let opcion = document.createElement("option");
-        opcion.value = categoriasUnicas[i];
-        opcion.text = categoriasUnicas[i];
+        opcion.value = categoriasUnicas[k];
+        opcion.text = categoriasUnicas[k];
         selector.appendChild(opcion);
+        k = k + 1;
       }
     }
 
-    // Función básica que se activa al escribir o cambiar categoría
     function filtrarProductos() {
-      let textoIngresado = document.getElementById('texto_busqueda').value.toLowerCase();
-      let categoriaSeleccionada = document.getElementById('lista_categorias').value;
-
+      let textoIngresado = document.getElementById("texto_busqueda").value.toLowerCase();
+      let categoriaSeleccionada = document.getElementById("lista_categorias").value;
       let listaFiltrada = [];
+      let i = 0;
 
-      for (let i = 0; i < listaGlobal.length; i++) {
+      while (i < listaGlobal.length) {
         let prod = listaGlobal[i];
-
         let coincideNombre = false;
+        let coincideCategoria = false;
+
         if (prod.nombre.toLowerCase().includes(textoIngresado)) {
           coincideNombre = true;
         }
 
-        let coincideCategoria = false;
         if (categoriaSeleccionada == "Todas") {
           coincideCategoria = true;
-        } else if (prod.categoria == categoriaSeleccionada) {
-          coincideCategoria = true;
+        } 
+        if (categoriaSeleccionada != "Todas") {
+          if (prod.categoria == categoriaSeleccionada) {
+            coincideCategoria = true;
+          }
         }
 
-        if (coincideNombre == true && coincideCategoria == true) {
-          listaFiltrada.push(prod);
+        if (coincideNombre == true) {
+           if (coincideCategoria == true) {
+              listaFiltrada.push(prod);
+           }
         }
+        i = i + 1;
       }
 
       mostrarProductosEnPantalla(listaFiltrada);
     }
+
+    function mostrarNuevaImagen(input, idDeLaImagen, idProducto) {
+      if (input.files.length > 0) {
+        let archivoSeleccionado = input.files[0];
+        let lector = new FileReader();
+
+        lector.onload = function(evento) {
+          let imagenHTML = document.getElementById(idDeLaImagen);
+          let imagenConvertida = evento.target.result;
+          imagenHTML.src = imagenConvertida;
+
+          db.collection("productos").doc(idProducto).update({
+            imagen: imagenConvertida
+          });
+        };
+
+        lector.readAsDataURL(archivoSeleccionado);
+      }
+    }
+
+    function borrarImagen(idDeLaImagen, idProducto) {
+      let imagenHTML = document.getElementById(idDeLaImagen);
+      imagenHTML.src = "imagenes/default.png"; 
+
+      db.collection("productos").doc(idProducto).update({
+        imagen: ""
+      });
+    }
   </script>
 </body>
-
 </html>
