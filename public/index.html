@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,24 +11,24 @@
       background-color: #f8f9fa;
       transition: background-color 0.3s, color 0.3s;
     }
-    
+
     .scroll-horizontal {
       display: flex;
       overflow-x: auto;
       gap: 10px;
       padding-bottom: 10px;
     }
-    
+
     .scroll-horizontal::-webkit-scrollbar {
       height: 0px;
       background: transparent;
     }
-    
+
     .img-pequena {
       height: 90px;
       object-fit: cover;
     }
-    
+
     .card-img-top {
       height: 120px;
       object-fit: cover;
@@ -44,78 +45,89 @@
     .panel-lateral {
       width: 100%;
     }
-    
+
     @media (min-width: 768px) {
       .panel-lateral {
         width: 260px;
         flex-shrink: 0;
       }
+
       .card-img-top {
         height: 170px;
       }
+
       .texto-titulo {
         font-size: 16px;
       }
+
       .texto-precio {
         font-size: 22px;
       }
-      
+
       .scroll-horizontal {
-        flex-wrap: wrap; 
+        flex-wrap: wrap;
         overflow-x: visible;
       }
-      
+
       #contenedor_destacados.scroll-horizontal {
         flex-wrap: nowrap;
         overflow-x: auto;
       }
-      
+
       #contenedor_destacados.scroll-horizontal::-webkit-scrollbar {
         height: 8px;
       }
-      
+
       #contenedor_destacados.scroll-horizontal::-webkit-scrollbar-thumb {
         background-color: #dee2e6;
         border-radius: 4px;
       }
     }
-    
+
     .modo-oscuro {
       background-color: #212529 !important;
       color: #f8f9fa !important;
     }
-    
+
     .modo-oscuro .card {
       background-color: #343a40 !important;
       color: #f8f9fa !important;
       border-color: #495057 !important;
     }
-    
+
     .modo-oscuro .navbar {
       background-color: #0d6efd !important;
     }
-    
-    .modo-oscuro input {
+
+    .modo-oscuro input,
+    .modo-oscuro .modal-content {
       background-color: #495057 !important;
       color: white !important;
       border-color: #6c757d !important;
     }
-    
+
     .modo-oscuro .bg-light {
       background-color: #495057 !important;
     }
   </style>
 </head>
+
 <body>
 
+  <!-- BARRA DE NAVEGACIÓN -->
   <nav class="navbar navbar-dark bg-primary mb-3 shadow-sm">
     <div class="container-fluid d-flex flex-column flex-md-row align-items-center justify-content-between py-2">
-      
+
       <div class="d-flex w-100 w-md-auto justify-content-between align-items-center mb-2 mb-md-0 d-md-none">
         <span class="navbar-brand mb-0 fw-bold" style="font-size: 20px;">Beneventi</span>
-        <button id="boton-tema-movil" class="btn btn-light btn-sm fw-bold rounded-pill px-3" style="font-size: 12px;" onclick="cambiarTema()">Modo Oscuro</button>
+        <div>
+          <button id="boton-tema-movil" class="btn btn-light btn-sm fw-bold rounded-pill px-2" style="font-size: 12px;"
+            onclick="cambiarTema()">Modo Oscuro</button>
+          <button id="btn-login-movil" class="btn btn-warning btn-sm rounded-circle ms-1" data-bs-toggle="modal"
+            data-bs-target="#loginModal" title="Acceso Administrador">🔒</button>
+        </div>
       </div>
-      
+
       <span class="navbar-brand mb-0 h1 fw-bold d-none d-md-block m-0">Minimarket Beneventi</span>
 
       <div class="text-white opacity-75 text-center my-1 my-md-0 flex-grow-1" style="font-size: 13px;">
@@ -123,21 +135,50 @@
         <span class="d-none d-md-inline mx-2">|</span>
         <span class="d-block d-md-inline">🕒 Horario: 10:00 - 20:00</span>
       </div>
-      
-      <button id="boton-tema-pc" class="btn btn-light btn-sm fw-bold rounded-pill px-3 d-none d-md-block m-0" onclick="cambiarTema()">Modo Oscuro</button>
-      
+
+      <div class="d-none d-md-block m-0">
+        <button id="boton-tema-pc" class="btn btn-light btn-sm fw-bold rounded-pill px-3" onclick="cambiarTema()">Modo
+          Oscuro</button>
+        <button id="btn-login-pc" class="btn btn-warning btn-sm rounded-circle ms-2" data-bs-toggle="modal"
+          data-bs-target="#loginModal" title="Acceso Administrador">🔒</button>
+      </div>
+
     </div>
   </nav>
 
+  <!-- VENTANA EMERGENTE (MODAL) PARA INICIAR SESIÓN -->
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold text-primary">Acceso de Administrador</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="email" id="email-admin" class="form-control mb-3"
+            placeholder="Correo electrónico (ej: admin@beneventi.cl)">
+          <input type="password" id="clave-admin" class="form-control mb-2" placeholder="Contraseña">
+          <p id="error-login" class="text-danger fw-bold m-0" style="display:none; font-size: 13px;">Credenciales
+            incorrectas. Intenta de nuevo.</p>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" onclick="iniciarSesion()">Ingresar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="container-fluid px-2 px-md-4">
     <div class="d-flex flex-column flex-md-row gap-2 gap-md-4">
-      
+
       <div class="panel-lateral mb-3">
         <div class="card shadow-sm border-0 rounded-4 sticky-top" style="top: 10px;">
           <div class="card-body p-3 p-md-4">
             <h6 class="card-title fw-bold text-primary mb-2">Buscador</h6>
-            <input type="text" id="texto_busqueda" class="form-control form-control-sm mb-3 rounded-pill px-3" placeholder="Ej: leche..." onkeyup="filtrarProductos()">
-            
+            <input type="text" id="texto_busqueda" class="form-control form-control-sm mb-3 rounded-pill px-3"
+              placeholder="Ej: leche..." onkeyup="filtrarProductos()">
+
             <h6 class="form-label fw-bold text-secondary mb-2" style="font-size: 13px;">Categorías:</h6>
             <div id="contenedor_categorias" class="scroll-horizontal">
               <p style="font-size: 12px;">Cargando...</p>
@@ -155,14 +196,15 @@
           <p class="ms-3" style="font-size: 13px;">Cargando catálogo...</p>
         </div>
       </div>
-      
+
     </div>
   </div>
 
-  <div id="accesoOculto" style="width: 50px; height: 50px; position: fixed; bottom: 0; right: 0; z-index: 9999;"></div>
-
+  <!-- LIBRERÍAS (Agregamos Auth y Bootstrap JS) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
   <script>
     let temaOscuro = false;
@@ -179,7 +221,7 @@
         temaOscuro = true;
         return;
       }
-      
+
       if (temaOscuro == true) {
         cuerpo.classList.remove("modo-oscuro");
         botonPc.innerText = "Modo Oscuro";
@@ -189,45 +231,92 @@
       }
     }
 
-    let esAdmin = false;
-
-    document.getElementById("accesoOculto").onclick = function() {
-      if (esAdmin == true) {
-        let salir = confirm("¿Cerrar sesion de administrador?");
-        if (salir == true) {
-          esAdmin = false;
-          filtrarProductos();
-        }
-        return;
-      }
-
-      if (esAdmin == false) {
-        let usuario = prompt("Ingrese usuario:");
-        let clave = prompt("Ingrese contraseña:");
-
-        if (usuario == "dueno") {
-          if (clave == "admin123") {
-            esAdmin = true;
-            alert("Acceso concedido. Puede editar las imagenes.");
-            filtrarProductos();
-          }
-        }
-      }
-    };
-
     const firebaseConfig = {
-      projectId: "catalogoproyecto-69cc3"
+      apiKey: "AIzaSyCEexv33FWPE9ZEShIPu0ho-HqFbatfVGE",
+      authDomain: "catalogoproyecto-69cc3.firebaseapp.com",
+      projectId: "catalogoproyecto-69cc3",
+      storageBucket: "catalogoproyecto-69cc3.firebasestorage.app",
+      messagingSenderId: "1085679300576",
+      appId: "1:1085679300576:web:2f1d2895931b2d3fe74585"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     let listaGlobal = [];
+    let esAdmin = false;
 
-    db.collection("productos").onSnapshot(function(snapshot) {
+    // --- SISTEMA DE AUTENTICACIÓN ---
+
+    // 1. Observador: Siempre vigila si alguien inició o cerró sesión
+    firebase.auth().onAuthStateChanged(function (usuario) {
+      let btnMovil = document.getElementById("btn-login-movil");
+      let btnPc = document.getElementById("btn-login-pc");
+
+      if (usuario) {
+        esAdmin = true;
+
+        btnMovil.innerText = "🔓";
+        btnPc.innerText = "🔓";
+
+        btnMovil.removeAttribute("data-bs-toggle");
+        btnPc.removeAttribute("data-bs-toggle");
+
+        btnMovil.onclick = cerrarSesion;
+        btnPc.onclick = cerrarSesion;
+
+        let miModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+        if (miModal != null) {
+          miModal.hide();
+        }
+
+      } else {
+        esAdmin = false;
+
+        btnMovil.innerText = "🔒";
+        btnPc.innerText = "🔒";
+
+        btnMovil.setAttribute("data-bs-toggle", "modal");
+        btnPc.setAttribute("data-bs-toggle", "modal");
+
+        btnMovil.onclick = null;
+        btnPc.onclick = null;
+      }
+
+      filtrarProductos();
+    });
+
+    // 2. Función para iniciar sesión con Firebase
+    function iniciarSesion() {
+      let correo = document.getElementById("email-admin").value;
+      let clave = document.getElementById("clave-admin").value;
+
+      firebase.auth().signInWithEmailAndPassword(correo, clave)
+        .then(function (credencial) {
+          document.getElementById("error-login").style.display = "none";
+          document.getElementById("email-admin").value = "";
+          document.getElementById("clave-admin").value = "";
+        })
+        .catch(function (error) {
+          let cajaError = document.getElementById("error-login");
+          cajaError.style.display = "block";
+          cajaError.innerText = "Error de Firebase: " + error.code;
+        });
+    }
+
+    // 3. Función para cerrar sesión con Firebase
+    function cerrarSesion() {
+      let confirmacion = confirm("¿Deseas cerrar la sesión de administrador?");
+      if (confirmacion == true) {
+        firebase.auth().signOut();
+      }
+    }
+
+    // --- FIN DEL SISTEMA DE AUTENTICACIÓN ---
+
+    db.collection("productos").onSnapshot(function (snapshot) {
       listaGlobal = [];
-      
-      snapshot.forEach(function(doc) {
+
+      snapshot.forEach(function (doc) {
         let datos = doc.data();
         listaGlobal.push({
           id: doc.id,
@@ -247,20 +336,20 @@
     function mostrarDestacados(lista) {
       let htmlDestacados = "";
       let i = 0;
-      let tope = 8; 
-      
+      let tope = 8;
+
       if (lista.length < 8) {
         tope = lista.length;
       }
-      
+
       while (i < tope) {
         let prod = lista[i];
         let rutaImagen = "imagenes/default.png";
-        
+
         if (prod.imagen != undefined) {
-            if (prod.imagen != "") {
-                rutaImagen = prod.imagen;
-            }
+          if (prod.imagen != "") {
+            rutaImagen = prod.imagen;
+          }
         }
 
         htmlDestacados = htmlDestacados + "<div class='card shadow-sm border-0 rounded-4' style='width: 120px; flex-shrink: 0;'>";
@@ -269,7 +358,7 @@
         htmlDestacados = htmlDestacados + "<h6 class='card-title text-truncate mb-1' style='font-size: 11px;'>" + prod.nombre + "</h6>";
         htmlDestacados = htmlDestacados + "<p class='card-text fw-bold text-primary mb-0' style='font-size: 14px;'>$" + prod.precio + "</p>";
         htmlDestacados = htmlDestacados + "</div></div>";
-        
+
         i = i + 1;
       }
 
@@ -279,11 +368,11 @@
     function mostrarProductosEnPantalla(lista) {
       let htmlFinal = "";
       let i = 0;
-      
+
       while (i < lista.length) {
         let prod = lista[i];
         let textoStock = "";
-        
+
         if (prod.stock > 0) {
           textoStock = "<span class='badge bg-success mt-1 py-1 px-2 rounded-pill' style='font-size: 10px;'>✔ Stock: " + prod.stock + "</span>";
         }
@@ -293,28 +382,28 @@
 
         let rutaImagen = "imagenes/default.png";
         if (prod.imagen != undefined) {
-            if (prod.imagen != "") {
-                rutaImagen = prod.imagen;
-            }
+          if (prod.imagen != "") {
+            rutaImagen = prod.imagen;
+          }
         }
 
         let idDeLaImagen = "imagen_producto_" + i;
-        
+
         htmlFinal = htmlFinal + "<div class='col'>";
         htmlFinal = htmlFinal + "<div class='card shadow-sm h-100 border-0 rounded-4'>";
         htmlFinal = htmlFinal + "<img id='" + idDeLaImagen + "' src='" + rutaImagen + "' class='card-img-top p-2 rounded-5' onerror=\"this.src='imagenes/default.png'\">";
         htmlFinal = htmlFinal + "<div class='card-body d-flex flex-column p-2 p-md-3'>";
-        
+
         let nombreCategoria = "General";
         if (prod.categoria != undefined) {
-            nombreCategoria = prod.categoria;
+          nombreCategoria = prod.categoria;
         }
 
         htmlFinal = htmlFinal + "<small class='text-secondary text-uppercase fw-bold text-truncate' style='font-size: 10px;'>" + nombreCategoria + "</small>";
         htmlFinal = htmlFinal + "<h5 class='card-title texto-titulo mt-1 mb-1 text-truncate'>" + prod.nombre + "</h5>";
         htmlFinal = htmlFinal + "<h4 class='text-primary fw-bold mb-auto texto-precio'>$" + prod.precio + "</h4>";
         htmlFinal = htmlFinal + "<div>" + textoStock + "</div>";
-        
+
         if (esAdmin == true) {
           htmlFinal = htmlFinal + "<div class='mt-2 p-1 bg-light rounded border'>";
           htmlFinal = htmlFinal + "<label class='form-label mb-0 text-secondary' style='font-size: 10px; font-weight: bold;'>Cambiar Imagen:</label>";
@@ -324,7 +413,7 @@
         }
 
         htmlFinal = htmlFinal + "</div></div></div>";
-        
+
         i = i + 1;
       }
 
@@ -349,14 +438,14 @@
 
         if (existe == false) {
           if (cat != undefined) {
-             categoriasUnicas.push(cat);
+            categoriasUnicas.push(cat);
           }
         }
         i = i + 1;
       }
 
       let contenedor = document.getElementById("contenedor_categorias");
-      contenedor.innerHTML = ""; 
+      contenedor.innerHTML = "";
 
       let k = 0;
       while (k < categoriasUnicas.length) {
@@ -371,18 +460,18 @@
         checkbox.value = categoriasUnicas[k];
         checkbox.className = "form-check-input check-categoria";
         checkbox.style.marginLeft = "-18px";
-        checkbox.onclick = filtrarProductos; 
+        checkbox.onclick = filtrarProductos;
 
         let label = document.createElement("label");
         label.className = "form-check-label text-secondary fw-bold";
         label.style.fontSize = "12px";
         let texto = document.createTextNode(categoriasUnicas[k]);
-        
+
         label.appendChild(texto);
         div.appendChild(checkbox);
         div.appendChild(label);
         contenedor.appendChild(div);
-        
+
         k = k + 1;
       }
     }
@@ -392,7 +481,7 @@
       let checks = document.getElementsByClassName("check-categoria");
       let categoriasSeleccionadas = [];
       let c = 0;
-      
+
       while (c < checks.length) {
         if (checks[c].checked == true) {
           categoriasSeleccionadas.push(checks[c].value);
@@ -415,7 +504,7 @@
         if (categoriasSeleccionadas.length == 0) {
           coincideCategoria = true;
         }
-        
+
         if (categoriasSeleccionadas.length > 0) {
           let j = 0;
           while (j < categoriasSeleccionadas.length) {
@@ -427,9 +516,9 @@
         }
 
         if (coincideNombre == true) {
-           if (coincideCategoria == true) {
-              listaFiltrada.push(prod);
-           }
+          if (coincideCategoria == true) {
+            listaFiltrada.push(prod);
+          }
         }
         i = i + 1;
       }
@@ -442,7 +531,7 @@
         let archivoSeleccionado = input.files[0];
         let lector = new FileReader();
 
-        lector.onload = function(evento) {
+        lector.onload = function (evento) {
           let imagenHTML = document.getElementById(idDeLaImagen);
           let imagenConvertida = evento.target.result;
           imagenHTML.src = imagenConvertida;
@@ -458,7 +547,7 @@
 
     function borrarImagen(idDeLaImagen, idProducto) {
       let imagenHTML = document.getElementById(idDeLaImagen);
-      imagenHTML.src = "imagenes/default.png"; 
+      imagenHTML.src = "imagenes/default.png";
 
       db.collection("productos").doc(idProducto).update({
         imagen: ""
@@ -466,4 +555,5 @@
     }
   </script>
 </body>
+
 </html>
