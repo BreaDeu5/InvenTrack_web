@@ -104,8 +104,7 @@
       }
     }
 
-    /* Modo Oscuro */
-/* Modo Oscuro mejorado */
+    /* Modo Oscuro mejorado */
     .modo-oscuro {
       background-color: #121518 !important;
       color: #f8f9fa !important;
@@ -158,6 +157,16 @@
 
     .modo-oscuro #contenedor_categorias .form-check-label {
       color: #e9ecef !important;
+    }
+
+    /* Switch Solo en oferta en modo oscuro */
+    .modo-oscuro #caja_filtro_ofertas {
+      background-color: #2b3035 !important;
+      border-color: #495057 !important;
+    }
+
+    .modo-oscuro #caja_filtro_ofertas .form-check-label {
+      color: #ff6b6b !important;
     }
 
     /* Caja de subir imagen (Modo Admin) */
@@ -252,6 +261,15 @@
             <div id="contenedor_categorias" class="scroll-horizontal">
               <p style="font-size: 12px;">Cargando...</p>
             </div>
+
+            <hr class="my-3">
+            <div class="form-check form-switch p-2 ps-5 rounded border bg-light" id="caja_filtro_ofertas">
+              <input class="form-check-input" type="checkbox" role="switch" id="filtro_ofertas"
+                onchange="filtrarProductos()">
+              <label class="form-check-label fw-bold text-danger" for="filtro_ofertas" style="font-size: 13px;">
+                🏷️ Solo en oferta
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -270,7 +288,6 @@
               <option value="az">Nombre (A - Z)</option>
               <option value="menor_precio">Menor precio</option>
               <option value="mayor_precio">Mayor precio</option>
-              <option value="solo_ofertas">Solo ofertas</option>
             </select>
           </div>
         </div>
@@ -701,6 +718,7 @@
     function filtrarProductos() {
       let textoIngresado = document.getElementById("texto_busqueda").value.toLowerCase();
       let ordenSeleccionado = document.getElementById("selector_orden").value;
+      let soloOfertas = document.getElementById("filtro_ofertas").checked;
       let checks = document.getElementsByClassName("check-categoria");
       let categoriasSeleccionadas = [];
       let c = 0;
@@ -731,7 +749,7 @@
         }
 
         let pasaOferta = true;
-        if (ordenSeleccionado == "solo_ofertas") {
+        if (soloOfertas == true) {
           pasaOferta = (prod.precio_descuento != undefined && prod.precio_descuento > 0 && prod.precio_descuento < prod.precio);
         }
 
